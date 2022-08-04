@@ -135,9 +135,16 @@
       function init() {
         audioCtx = new AudioContext();
         track = new MediaElementAudioSourceNode(audioCtx, { mediaElement: audioElement });
+        const splitter = audioCtx.createChannelSplitter(2);
+        track.connect(splitter);
+        const merger = audioCtx.createChannelMerger(2);
 
         // Create the node that controls the volume.
         const gainNode = new GainNode(audioCtx);
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        splitter.connect(gainNode, 1);
+        gainNode.connect(merger, 0, 1);
+        splitter.connect(merger, 1, 0);
 
         const volumeControl = document.querySelector('[data-action="volume"]');
         volumeControl.addEventListener(
@@ -161,7 +168,7 @@
         );
 
         // connect our graph
-        track.connect(gainNode).connect(panner).connect(audioCtx.destination);
+        merger.connect(gainNode).connect(panner).connect(audioCtx.destination);
       }
 
       // Track credit: Outfoxing the Fox by Kevin MacLeod under Creative Commons
