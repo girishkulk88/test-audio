@@ -46,11 +46,12 @@
             data-action="panner"
           />
           <datalist id="pan-vals">
-            <option value="-1" label="left"></option>
-            <option value="1" label="right"></option>
+            <option value="-1" label="Music"></option>
+            <option value="0" label="Both"></option>
+            <option value="1" label="Commentary"></option>
           </datalist>
 
-          <label for="panner">CHANNEL</label>
+          <label for="panner">AUDIO CONTROL</label>
 
           <button
             class="control-power"
@@ -63,7 +64,7 @@
         </section>
 
         <section class="tape">
-          <audio src="outfoxing.mp3" crossorigin="anonymous"></audio>
+          <audio src="chaturanga.mp3" crossorigin="anonymous"></audio>
 
           <!-- 			type="audio/mpeg" -->
 
@@ -89,8 +90,13 @@
       // load some sound
       const audioElement = document.querySelector("audio");
       let track;
+        let gainL;
+        let gainR;
+        let upL;
+        let upR;
 
       const playButton = document.querySelector(".tape-controls-play");
+      const volumeControl = document.querySelector('[data-action="volume"]');
 
       // play pause audio
       playButton.addEventListener(
@@ -108,10 +114,12 @@
           if (playButton.dataset.playing === "false") {
             audioElement.play();
             playButton.dataset.playing = "true";
+//            alert(gainR.gain.value + ' ' + gainL.gain.value + ' ' + volumeControl.value); 
             // if track is playing pause it
           } else if (playButton.dataset.playing === "true") {
             audioElement.pause();
             playButton.dataset.playing = "false";
+//            alert('Values: ' + gainR.gain.value + ' ' + gainL.gain.value + ' ' + volumeControl.value); 
           }
 
           // Toggle the state between play and not playing
@@ -128,6 +136,7 @@
         () => {
           playButton.dataset.playing = "false";
           playButton.setAttribute("aria-checked", "false");
+//          alert('Values: ' + gainR.gain.value + ' ' + gainL.gain.value + ' ' + volumeControl.value); 
         },
         false
       );
@@ -136,21 +145,39 @@
         audioCtx = new AudioContext();
         track = new MediaElementAudioSourceNode(audioCtx, { mediaElement: audioElement });
         const splitter = audioCtx.createChannelSplitter(2);
-        track.connect(splitter);
         const merger = audioCtx.createChannelMerger(2);
+        merger.connect(audioCtx.destination);
 
-        // Create the node that controls the volume.
-        const gainNode = new GainNode(audioCtx);
-        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        splitter.connect(gainNode, 1);
-        gainNode.connect(merger, 0, 1);
-        splitter.connect(merger, 1, 0);
+        var gainL = audioCtx.createGain();
+        var gainR = audioCtx.createGain();
+        track.connect(splitter);
 
-        const volumeControl = document.querySelector('[data-action="volume"]');
+
+        splitter.connect(gainL, 0, 0);
+        splitter.connect(gainR, 1, 0);
+
+
+
+        gainL.connect(merger, 0, 0);
+        gainR.connect(merger, 0, 1);
+
+// Set the gain values for the left and right channels as desired.
+        gainL.gain.value = 1;
+        gainR.gain.value = 1;
+        upL = 1;
+        upR = 1;
+
+//        const volumeControl = document.querySelector('[data-action="volume"]');
         volumeControl.addEventListener(
           "input",
           () => {
-            gainNode.gain.value = volumeControl.value;
+//            gainNode.gain.value = volumeControl.value;
+               if (upR==1)
+               {
+                  gainR.gain.value=volumeControl.value;
+               }
+               if (upL==1)
+                  gainL.gain.value=volumeControl.value;
           },
           false
         );
@@ -163,15 +190,31 @@
           "input",
           () => {
             panner.pan.value = pannerControl.value;
+            if (pannerControl.value > 0.25)
+            {
+               gainR.gain.value=volumeControl.value;
+               gainL.gain.value=0;
+               upR=1; upL=0;
+            }
+            else if (pannerControl.value < -0.25)
+            {
+               gainR.gain.value=0;
+               gainL.gain.value=volumeControl.value;
+               upR=0; upL=1;
+            }
+            else
+            {
+               gainR.gain.value=1;
+               gainL.gain.value=1;
+//               alert('vol: ' + volumeControl.value);
+//               alert('Values: ' + gainR.gain.value + ' ' + gainL.gain.value + ' ' + volumeControl.value); 
+            }
           },
           false
         );
 
-        // connect our graph
-        merger.connect(gainNode).connect(panner).connect(audioCtx.destination);
       }
 
-      // Track credit: Outfoxing the Fox by Kevin MacLeod under Creative Commons
     </script>
   </body>
 </html>
