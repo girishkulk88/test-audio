@@ -4,14 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
 
-    <title>Web Audio API examples: decodeAudioData()</title>
+    <title>Podcast simple demo</title>
   </head>
 
   <body>
-    <h1>Web Audio API examples: decodeAudioData()</h1>
+    <h1>Podcast simple demo</h1>
 
     <button class="play">Play</button>
     <button class="stop">Stop</button>
+
+    <h2>Select commentary</h2>
+    <input
+           type="checkbox"
+           id="commentary"
+           class="control-commentary"
+           name="commentary"
+           checked="true"
+           data-action="commentary"
+           value="Include Commentary">
 
     <h2>Set playback rate</h2>
     <input
@@ -24,6 +34,7 @@
     />
     <span class="playback-rate-value">1.0</span>
 
+    <!--
     <h2>Set loop start and loop end</h2>
     <input
       class="loopstart-control"
@@ -44,6 +55,8 @@
       value="0"
     />
     <span class="loopend-value">0</span>
+    -->
+
   </body>
   <script>
     // define variables
@@ -87,7 +100,12 @@
             songLength = buffer.duration;
             source.buffer = buffer;
             source.playbackRate.value = playbackControl.value;
-            source.connect(audioCtx.destination);
+
+            const splitter = audioCtx.createChannelSplitter(2);
+            const merger = audioCtx.createChannelMerger(2);
+            merger.connect(audioCtx.destination);
+
+            source.connect(splitter);
             source.loop = true;
 
             loopstartControl.setAttribute("max", Math.floor(songLength));
