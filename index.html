@@ -2,232 +2,138 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Simple podcast demo</title>
-    <meta name="description" content="Simple Podcast Demo" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <!-- <link rel="stylesheet" type="text/css" href="style.css" /> -->
+    <meta name="viewport" content="width=device-width" />
+
+    <title>Web Audio API examples: decodeAudioData()</title>
   </head>
+
   <body>
-    <div id="boombox">
-      <div class="boombox-handle"></div>
+    <h1>Web Audio API examples: decodeAudioData()</h1>
 
-      <div class="boombox-body">
-        <section class="master-controls">
-          <input
-            type="range"
-            id="volume"
-            class="control-volume"
-            min="0"
-            max="2"
-            value="1"
-            list="gain-vals"
-            step="0.01"
-            data-action="volume"
-          />
-          <datalist id="gain-vals">
-            <option value="0" label="min"></option>
-            <option value="2" label="max"></option>
-          </datalist>
+    <button class="play">Play</button>
+    <button class="stop">Stop</button>
 
-          <label for="volume">VOL</label>
+    <h2>Set playback rate</h2>
+    <input
+      class="playback-rate-control"
+      type="range"
+      min="0.25"
+      max="3"
+      step="0.05"
+      value="1"
+    />
+    <span class="playback-rate-value">1.0</span>
 
-          <input 
-           type="checkbox" 
-           id="commentary" 
-           class="control-commentary" 
-           name="commentary" 
-           checked="true"
-           data-action="commentary"
-           value="Include Commentary">
+    <h2>Set loop start and loop end</h2>
+    <input
+      class="loopstart-control"
+      type="range"
+      min="0"
+      max="20"
+      step="1"
+      value="0"
+    />
+    <span class="loopstart-value">0</span>
 
-          <label for="commentary">Include Commentary</label>
-
-          <button
-            class="control-power"
-            role="switch"
-            aria-checked="false"
-            data-power="on"
-          >
-            <span>On/Off</span>
-          </button>
-        </section>
-
-        <section class="tape">
-          <audio src="chaturanga.mp3" crossorigin="anonymous"></audio>
-
-          <!-- 			type="audio/mpeg" -->
-
-          <!-- -->
-          <button
-            role="switch"
-            class="tape-controls-rew"
-            aria-checked="false">
-            <span>Rew</span>
-          </button>
-          <!-- -->
-          <button
-            data-playing="false"
-            class="tape-controls-play"
-            role="switch"
-            aria-checked="false">
-            <span>Play/Pause</span>
-          </button>
-          <!-- -->
-          
-          <button
-            data-ff="false"
-            class="tape-controls-ff"
-            role="switch"
-            aria-checked="false">
-            <span>FF</span>
-          </button>
-          <!-- -->
-        </section>
-      </div>
-      <!-- boombox-body -->
-    </div>
-
-    <script type="text/javascript">
-      console.clear();
-
-      // instigate our audio context
-      let audioCtx;
-
-      // load some sound
-      const audioElement = document.querySelector("audio");
-      let track;
-        let gainL;
-        let gainR;
-        let upL;
-        let upR;
-
-      const playButton = document.querySelector(".tape-controls-play");
-      const volumeControl = document.querySelector('[data-action="volume"]');
-
-      // play pause audio
-      playButton.addEventListener(
-        "click",
-        () => {
-          if (!audioCtx) {
-            init();
-          }
-
-          // check if context is in suspended state (autoplay policy)
-          if (audioCtx.state === "suspended") {
-            audioCtx.resume();
-          }
-
-          if (playButton.dataset.playing === "false") {
-            audioElement.play();
-            playButton.dataset.playing = "true";
-//            alert(gainR.gain.value + ' ' + gainL.gain.value + ' ' + volumeControl.value); 
-            // if track is playing pause it
-          } else if (playButton.dataset.playing === "true") {
-            audioElement.pause();
-            playButton.dataset.playing = "false";
-//            alert('Values: ' + gainR.gain.value + ' ' + gainL.gain.value + ' ' + volumeControl.value); 
-          }
-
-          // Toggle the state between play and not playing
-          let state =
-            playButton.getAttribute("aria-checked") === "true" ? true : false;
-          playButton.setAttribute("aria-checked", state ? "false" : "true");
-        },
-        false
-      );
-
-      // If track ends
-      audioElement.addEventListener(
-        "ended",
-        () => {
-          playButton.dataset.playing = "false";
-          playButton.setAttribute("aria-checked", "false");
-//          alert('Values: ' + gainR.gain.value + ' ' + gainL.gain.value + ' ' + volumeControl.value); 
-        },
-        false
-      );
-
-      function init() {
-        audioCtx = new AudioContext();
-        track = new MediaElementAudioSourceNode(audioCtx, { mediaElement: audioElement });
-        const commControl = document.querySelector('input[id="commentary"]');
-        const splitter = audioCtx.createChannelSplitter(2);
-        const merger = audioCtx.createChannelMerger(2);
-        merger.connect(audioCtx.destination);
-
-        var gainL = audioCtx.createGain();
-        var gainR = audioCtx.createGain();
-        track.connect(splitter);
-
-
-        splitter.connect(gainL, 0, 0);
-        splitter.connect(gainR, 1, 0);
-
-
-        gainL.connect(merger, 0, 0);
-        gainR.connect(merger, 0, 1);
-
-
-        if (commControl.checked)
-        {
-            gainL.gain.value = 1;
-            gainR.gain.value = 1;
-            upL = 1;
-            upR = 1;
-        }
-        else
-        {
-            gainL.gain.value = 1;
-            gainR.gain.value = 0;
-            upL = 1;
-            upR = 0;
-        }
-
-//        const volumeControl = document.querySelector('[data-action="volume"]');
-        volumeControl.addEventListener(
-          "input",
-          () => {
-//            gainNode.gain.value = volumeControl.value;
-               if (upR==1)
-               {
-                  gainR.gain.value=volumeControl.value;
-               }
-               if (upL==1)
-                  gainL.gain.value=volumeControl.value;
-          },
-          false
-        );
-
-        // Create the node that controls the panning
-        const panner = new StereoPannerNode(audioCtx, { pan: 0 });
-
-        commControl.addEventListener(
-          "change",
-          (event) => {
-            
-           // alert('cb value: ' + commControl.checked);
-            
-            if (!commControl.checked)
-            {
-               gainR.gain.value=0;
-               gainL.gain.value=volumeControl.value;
-               upR=0; upL=1;
-            }
-            else
-            {
-               gainR.gain.value=volumeControl.value;
-               gainL.gain.value=volumeControl.value;
-               upR=1; upL=1;
-            }
-          },
-          false
-        );
-
-      }
-
-    </script>
+    <input
+      class="loopend-control"
+      type="range"
+      min="0"
+      max="20"
+      step="1"
+      value="0"
+    />
+    <span class="loopend-value">0</span>
   </body>
+  <script>
+    // define variables
+    const audioCtx = new AudioContext();
+    let source;
+    let songLength;
+
+    const play = document.querySelector(".play");
+    const stop = document.querySelector(".stop");
+
+    const playbackControl = document.querySelector(".playback-rate-control");
+    const playbackValue = document.querySelector(".playback-rate-value");
+    playbackControl.setAttribute("disabled", "disabled");
+
+    const loopstartControl = document.querySelector(".loopstart-control");
+    const loopstartValue = document.querySelector(".loopstart-value");
+    loopstartControl.setAttribute("disabled", "disabled");
+
+    const loopendControl = document.querySelector(".loopend-control");
+    const loopendValue = document.querySelector(".loopend-value");
+    loopendControl.setAttribute("disabled", "disabled");
+
+    // use XHR to load an audio track, and
+    // decodeAudioData to decode it and stick it in a buffer.
+    // Then we put the buffer into the source
+
+    function getData() {
+      source = new AudioBufferSourceNode(audioCtx);
+      request = new XMLHttpRequest();
+
+      request.open("GET", "chaturanga.mp3", true);
+
+      request.responseType = "arraybuffer";
+
+      request.onload = () => {
+        let audioData = request.response;
+
+        audioCtx.decodeAudioData(
+          audioData,
+          (buffer) => {
+            songLength = buffer.duration;
+            source.buffer = buffer;
+            source.playbackRate.value = playbackControl.value;
+            source.connect(audioCtx.destination);
+            source.loop = true;
+
+            loopstartControl.setAttribute("max", Math.floor(songLength));
+            loopendControl.setAttribute("max", Math.floor(songLength));
+          },
+          (e) => {
+            `Error with decoding audio data ${e.error}`;
+          }
+        );
+      };
+
+      request.send();
+    }
+
+    // wire up buttons to stop and play audio, and range slider control
+
+    play.onclick = () => {
+      getData();
+      source.start(0);
+      play.setAttribute("disabled", "disabled");
+      playbackControl.removeAttribute("disabled");
+      loopstartControl.removeAttribute("disabled");
+      loopendControl.removeAttribute("disabled");
+    };
+
+    stop.onclick = () => {
+      source.stop(0);
+      play.removeAttribute("disabled");
+      playbackControl.setAttribute("disabled", "disabled");
+      loopstartControl.setAttribute("disabled", "disabled");
+      loopendControl.setAttribute("disabled", "disabled");
+    };
+
+    playbackControl.oninput = () => {
+      source.playbackRate.value = playbackControl.value;
+      playbackValue.textContent = playbackControl.value;
+    };
+
+    loopstartControl.oninput = () => {
+      source.loopStart = loopstartControl.value;
+      loopstartValue.textContent = loopstartControl.value;
+    };
+
+    loopendControl.oninput = () => {
+      source.loopEnd = loopendControl.value;
+      loopendValue.textContent = loopendControl.value;
+    };
+  </script>
 </html>
