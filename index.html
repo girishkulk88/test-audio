@@ -8,7 +8,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="style.css" /> -->
   </head>
   <body>
     <div id="boombox">
@@ -60,14 +60,31 @@
 
           <!-- 			type="audio/mpeg" -->
 
+          <!-- -->
+          <button
+            role="switch"
+            class="tape-controls-rew"
+            aria-checked="false">
+            <span>Rew</span>
+          </button>
+          <!-- -->
           <button
             data-playing="false"
             class="tape-controls-play"
             role="switch"
-            aria-checked="false"
-          >
+            aria-checked="false">
             <span>Play/Pause</span>
           </button>
+          <!-- -->
+          
+          <button
+            data-ff="false"
+            class="tape-controls-ff"
+            role="switch"
+            aria-checked="false">
+            <span>FF</span>
+          </button>
+          <!-- -->
         </section>
       </div>
       <!-- boombox-body -->
