@@ -110,8 +110,8 @@
             source.connect(splitter);
             source.loop = true;
 
-            loopstartControl.setAttribute("max", Math.floor(songLength));
-            loopendControl.setAttribute("max", Math.floor(songLength));
+//            loopstartControl.setAttribute("max", Math.floor(songLength));
+//            loopendControl.setAttribute("max", Math.floor(songLength));
           },
           (e) => {
             `Error with decoding audio data ${e.error}`;
@@ -129,16 +129,16 @@
       source.start(0);
       play.setAttribute("disabled", "disabled");
       playbackControl.removeAttribute("disabled");
-      loopstartControl.removeAttribute("disabled");
-      loopendControl.removeAttribute("disabled");
+//      loopstartControl.removeAttribute("disabled");
+//      loopendControl.removeAttribute("disabled");
     };
 
     stop.onclick = () => {
       source.stop(0);
       play.removeAttribute("disabled");
       playbackControl.setAttribute("disabled", "disabled");
-      loopstartControl.setAttribute("disabled", "disabled");
-      loopendControl.setAttribute("disabled", "disabled");
+//      loopstartControl.setAttribute("disabled", "disabled");
+//      loopendControl.setAttribute("disabled", "disabled");
     };
 
     playbackControl.oninput = () => {
@@ -146,6 +146,7 @@
       playbackValue.textContent = playbackControl.value;
     };
 
+/*
     loopstartControl.oninput = () => {
       source.loopStart = loopstartControl.value;
       loopstartValue.textContent = loopstartControl.value;
@@ -155,5 +156,6 @@
       source.loopEnd = loopendControl.value;
       loopendValue.textContent = loopendControl.value;
     };
+*/
   </script>
 </html>
