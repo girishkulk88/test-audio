@@ -60,7 +60,7 @@
   </body>
   <script>
     // define variables
-    const audioCtx = new AudioContext();
+    let audioCtx;
     let source;
     let songLength;
 
@@ -86,6 +86,7 @@
     // Then we put the buffer into the source
 
     function getData() {
+      const audioCtx = new AudioContext();
       source = new AudioBufferSourceNode(audioCtx);
       request = new XMLHttpRequest();
 
@@ -104,11 +105,24 @@
             source.playbackRate.value = playbackControl.value;
 
             const splitter = audioCtx.createChannelSplitter(2);
+            source.connect(splitter);
             const merger = audioCtx.createChannelMerger(2);
             merger.connect(audioCtx.destination);
+            console.log('length: ' + songLength);
+            var gainL = audioCtx.createGain();
+            var gainR = audioCtx.createGain();
 
-            source.connect(splitter);
-            source.loop = true;
+
+            splitter.connect(gainL, 0, 0);
+            splitter.connect(gainR, 1, 0);
+
+
+            gainL.connect(merger, 0, 0);
+            gainR.connect(merger, 0, 1);
+            gainL.gain.value = 1;
+            gainR.gain.value = 1;
+
+//            source.loop = true;
 
 //            loopstartControl.setAttribute("max", Math.floor(songLength));
 //            loopendControl.setAttribute("max", Math.floor(songLength));
@@ -134,6 +148,7 @@
     };
 
     stop.onclick = () => {
+      //console.log('currentTime: ' + audioCtx.currentTime);
       source.stop(0);
       play.removeAttribute("disabled");
       playbackControl.setAttribute("disabled", "disabled");
