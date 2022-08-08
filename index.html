@@ -14,26 +14,28 @@
     <button class="stop">Stop</button>
     <button class="pause"><span>Pause</span></button>
 
-    <h2>Volume control</h2>
+    <h2>Volume controls</h2>
+    <h3>Main track</h3>
     <input
             type="range"
-            id="volumeControl"
-            class="control-volume"
+            id="volumeControlm"
+            class="control-volumem"
+            min="0"
+            max="2"
+            value="1"
+            step="0.01"
+          />
+    <h3>Overlay</h3>
+    <input
+            type="range"
+            id="volumeControlo"
+            class="control-volumeo"
             min="0"
             max="2"
             value="1"
             step="0.01"
           />
 
-    <h2>Select commentary</h2>
-    <input
-           type="checkbox"
-           id="commControl"
-           class="control-commentary"
-           name="commControl"
-           checked="false"
-           data-action="commentary"
-           value="Include Commentary">
 
     <h2>Set playback rate</h2>
     <input
@@ -77,8 +79,6 @@
     let songLength;
     let gainL;
     let gainR;
-    let upL;
-    let upR;
     let paused;
 
     const play = document.querySelector(".play");
@@ -139,7 +139,6 @@
             gainR.connect(merger, 0, 1);
             gainL.gain.value = 1;
             gainR.gain.value = 1;
-            upR=1; upL=1;
 
 //            source.loop = true;
 
@@ -169,21 +168,6 @@
 
 
 
-    commControl.oninput = () => {
-//            console.log('currentTime: ' + audioCtx.currentTime);
-            if (!commControl.checked)
-            {
-               gainR.gain.value=0;
-               gainL.gain.value=volumeControl.value;
-               upR=0; upL=1;
-            }
-            else
-            {
-               gainR.gain.value=volumeControl.value;
-               gainL.gain.value=volumeControl.value;
-               upR=1; upL=1;
-            }
-    }
     pause.onclick = () => {
 //      console.log('currentTime: ' + audioCtx.currentTime);
       if (paused==true)
@@ -213,14 +197,11 @@
       playbackValue.textContent = playbackControl.value;
     };
 
-    volumeControl.oninput = () => {
-//            gainNode.gain.value = volumeControl.value;
-               if (upR==1)
-               {
-                  gainR.gain.value=volumeControl.value;
-               }
-               if (upL==1)
-                  gainL.gain.value=volumeControl.value;
+    volumeControlm.oninput = () => {
+                  gainL.gain.value=volumeControlm.value;
+   }
+    volumeControlo.oninput = () => {
+                  gainR.gain.value=volumeControlo.value;
    }
 /*
     loopstartControl.oninput = () => {
