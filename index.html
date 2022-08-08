@@ -12,6 +12,7 @@
 
     <button class="play">Play</button>
     <button class="stop">Stop</button>
+    <button class="pause"><span>Pause</span></button>
 
     <h2>Volume control</h2>
     <input
@@ -78,9 +79,11 @@
     let gainR;
     let upL;
     let upR;
+    let paused;
 
     const play = document.querySelector(".play");
     const stop = document.querySelector(".stop");
+    const pause = document.querySelector(".pause");
 
     const playbackControl = document.querySelector(".playback-rate-control");
     const playbackValue = document.querySelector(".playback-rate-value");
@@ -101,7 +104,7 @@
     // Then we put the buffer into the source
 
     function getData() {
-      const audioCtx = new AudioContext();
+      audioCtx = new AudioContext();
       source = new AudioBufferSourceNode(audioCtx);
       request = new XMLHttpRequest();
 
@@ -157,6 +160,7 @@
     play.onclick = () => {
       getData();
       source.start(0);
+      paused=false;
       play.setAttribute("disabled", "disabled");
       playbackControl.removeAttribute("disabled");
 //      loopstartControl.removeAttribute("disabled");
@@ -166,6 +170,7 @@
 
 
     commControl.oninput = () => {
+//            console.log('currentTime: ' + audioCtx.currentTime);
             if (!commControl.checked)
             {
                gainR.gain.value=0;
@@ -179,8 +184,23 @@
                upR=1; upL=1;
             }
     }
+    pause.onclick = () => {
+//      console.log('currentTime: ' + audioCtx.currentTime);
+      if (paused==true)
+      {
+      paused=false;
+      pause.textContent="Pause";
+      audioCtx.resume();
+      }
+      else
+      {
+      paused=true;
+      pause.textContent="Resume";
+      audioCtx.suspend();
+      }
+    };
     stop.onclick = () => {
-      //console.log('currentTime: ' + audioCtx.currentTime);
+//      console.log('currentTime: ' + audioCtx.currentTime);
       source.stop(0);
       play.removeAttribute("disabled");
       playbackControl.setAttribute("disabled", "disabled");
