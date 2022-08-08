@@ -13,6 +13,10 @@
     <button class="play">Play</button>
     <button class="stop">Stop</button>
     <button class="pause"><span>Pause</span></button>
+    <br/>
+    <button class="rew"><span>rew</span></button>
+    <button class="ff"><span>ff</span></button>
+
 
     <h2>Volume controls</h2>
     <h3>Main track</h3>
@@ -80,9 +84,13 @@
     let gainL;
     let gainR;
     let paused;
+    let mybuffer;
+    let startTime;
 
     const play = document.querySelector(".play");
     const stop = document.querySelector(".stop");
+    const ff = document.querySelector(".ff");
+    const rew = document.querySelector(".rew");
     const pause = document.querySelector(".pause");
 
     const playbackControl = document.querySelector(".playback-rate-control");
@@ -120,6 +128,7 @@
           (buffer) => {
             songLength = buffer.duration;
             source.buffer = buffer;
+            mybuffer = buffer;
             source.playbackRate.value = playbackControl.value;
 
             const splitter = audioCtx.createChannelSplitter(2);
@@ -158,7 +167,10 @@
 
     play.onclick = () => {
       getData();
-      source.start(0);
+      startTime=0;
+      source.start(startTime);
+      startTime=audioCtx.currentTime;
+      console.log('Saved startTime: ' + startTime);
       paused=false;
       play.setAttribute("disabled", "disabled");
       playbackControl.removeAttribute("disabled");
@@ -190,6 +202,31 @@
       playbackControl.setAttribute("disabled", "disabled");
 //      loopstartControl.setAttribute("disabled", "disabled");
 //      loopendControl.setAttribute("disabled", "disabled");
+    };
+
+    ff.onclick = () => {
+      const currentTime=audioCtx.currentTime;
+      source.stop(currentTime);
+      source.disconnect();
+      source = audioCtx.createBufferSource();
+      source.buffer = mybuffer;
+      source.connect(audioCtx.destination);
+      console.log('ct:' + currentTime + ' startTime: ' + startTime + ' offset: ' + (currentTime-startTime+15));
+      source.start(currentTime, currentTime - startTime + 15);
+//      source.start(currentTime, 15);
+      startTime-=15;
+    };
+
+    rew.onclick = () => {
+      const currentTime=audioCtx.currentTime;
+      source.stop(currentTime);
+      source.disconnect();
+      source = audioCtx.createBufferSource();
+      source.buffer = mybuffer;
+      source.connect(audioCtx.destination);
+      console.log('ct:' + currentTime + ' startTime: ' + startTime);
+      source.start(currentTime, currentTime - startTime + 15);
+      startTime+=15;
     };
 
     playbackControl.oninput = () => {
