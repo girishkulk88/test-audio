@@ -13,13 +13,24 @@
     <button class="play">Play</button>
     <button class="stop">Stop</button>
 
+    <h2>Volume control</h2>
+    <input
+            type="range"
+            id="volumeControl"
+            class="control-volume"
+            min="0"
+            max="2"
+            value="1"
+            step="0.01"
+          />
+
     <h2>Select commentary</h2>
     <input
            type="checkbox"
-           id="commentary"
+           id="commControl"
            class="control-commentary"
-           name="commentary"
-           checked="true"
+           name="commControl"
+           checked="false"
            data-action="commentary"
            value="Include Commentary">
 
@@ -63,6 +74,10 @@
     let audioCtx;
     let source;
     let songLength;
+    let gainL;
+    let gainR;
+    let upL;
+    let upR;
 
     const play = document.querySelector(".play");
     const stop = document.querySelector(".stop");
@@ -109,8 +124,8 @@
             const merger = audioCtx.createChannelMerger(2);
             merger.connect(audioCtx.destination);
             console.log('length: ' + songLength);
-            var gainL = audioCtx.createGain();
-            var gainR = audioCtx.createGain();
+            gainL = audioCtx.createGain();
+            gainR = audioCtx.createGain();
 
 
             splitter.connect(gainL, 0, 0);
@@ -121,6 +136,7 @@
             gainR.connect(merger, 0, 1);
             gainL.gain.value = 1;
             gainR.gain.value = 1;
+            upR=1; upL=1;
 
 //            source.loop = true;
 
@@ -147,6 +163,22 @@
 //      loopendControl.removeAttribute("disabled");
     };
 
+
+
+    commControl.oninput = () => {
+            if (!commControl.checked)
+            {
+               gainR.gain.value=0;
+               gainL.gain.value=volumeControl.value;
+               upR=0; upL=1;
+            }
+            else
+            {
+               gainR.gain.value=volumeControl.value;
+               gainL.gain.value=volumeControl.value;
+               upR=1; upL=1;
+            }
+    }
     stop.onclick = () => {
       //console.log('currentTime: ' + audioCtx.currentTime);
       source.stop(0);
@@ -161,6 +193,15 @@
       playbackValue.textContent = playbackControl.value;
     };
 
+    volumeControl.oninput = () => {
+//            gainNode.gain.value = volumeControl.value;
+               if (upR==1)
+               {
+                  gainR.gain.value=volumeControl.value;
+               }
+               if (upL==1)
+                  gainL.gain.value=volumeControl.value;
+   }
 /*
     loopstartControl.oninput = () => {
       source.loopStart = loopstartControl.value;
