@@ -10,12 +10,24 @@
   <body>
     <h1>Podcast simple demo</h1>
 
+    <input
+      class="playback-position-control"
+      type="range"
+      min="0.0"
+      max="3600"
+      step="0.05"
+      value="0"
+    />
+    <span class="playback-position-value">1.0</span>
+    <br/>
+    <label class="curpos">0 seconds</label>
+    <br/>
     <button class="play">Play</button>
     <button class="stop">Stop</button>
     <button class="pause"><span>Pause</span></button>
     <br/>
-    <button class="rew"><span>rew</span></button>
-    <button class="ff"><span>ff</span></button>
+    <button class="rew"><span>-15</span></button>
+    <button class="ff"><span>+15</span></button>
 
 
     <h2>Volume controls</h2>
@@ -52,28 +64,6 @@
     />
     <span class="playback-rate-value">1.0</span>
 
-    <!--
-    <h2>Set loop start and loop end</h2>
-    <input
-      class="loopstart-control"
-      type="range"
-      min="0"
-      max="20"
-      step="1"
-      value="0"
-    />
-    <span class="loopstart-value">0</span>
-
-    <input
-      class="loopend-control"
-      type="range"
-      min="0"
-      max="20"
-      step="1"
-      value="0"
-    />
-    <span class="loopend-value">0</span>
-    -->
 
   </body>
   <script>
@@ -86,30 +76,41 @@
     let paused;
     let mybuffer;
     let startTime;
+    let splitter;
+    let merger;
+    let playback;
+    let playbackText;
+    let playBackPosOff;
+    let curpos;
+    let playing;
 
     const play = document.querySelector(".play");
     const stop = document.querySelector(".stop");
     const ff = document.querySelector(".ff");
     const rew = document.querySelector(".rew");
     const pause = document.querySelector(".pause");
-
+    playbackText = document.querySelector(".playback-position-value");
+    playback = document.querySelector(".playback-position-control");
+    curpos = document.querySelector(".curpos");
+    playing=false;
     const playbackControl = document.querySelector(".playback-rate-control");
     const playbackValue = document.querySelector(".playback-rate-value");
     playbackControl.setAttribute("disabled", "disabled");
 
-    /*
-    const loopstartControl = document.querySelector(".loopstart-control");
-    const loopstartValue = document.querySelector(".loopstart-value");
-    loopstartControl.setAttribute("disabled", "disabled");
 
-    const loopendControl = document.querySelector(".loopend-control");
-    const loopendValue = document.querySelector(".loopend-value");
-    loopendControl.setAttribute("disabled", "disabled");
-    */
+    function update_pos() {
+         if (playing)
+         {
+             playback.value=audioCtx.currentTime+playbackPosOff;
+             curpos.textContent=Math.floor(playback.value) + ' seconds';
+             pos_update_timer();
+         }
+    }
 
-    // use XHR to load an audio track, and
-    // decodeAudioData to decode it and stick it in a buffer.
-    // Then we put the buffer into the source
+    function pos_update_timer(){
+    var refresh=1000; // Refresh rate in milli seconds
+    mytime=setTimeout('update_pos()',refresh)
+    }
 
     function getData() {
       audioCtx = new AudioContext();
@@ -127,15 +128,17 @@
           audioData,
           (buffer) => {
             songLength = buffer.duration;
+            playbackText.textContent=Math.floor(songLength) + ' seconds';
+            playback.setAttribute("max", Math.floor(songLength));
             source.buffer = buffer;
             mybuffer = buffer;
             source.playbackRate.value = playbackControl.value;
 
-            const splitter = audioCtx.createChannelSplitter(2);
+            splitter = audioCtx.createChannelSplitter(2);
             source.connect(splitter);
-            const merger = audioCtx.createChannelMerger(2);
+            merger = audioCtx.createChannelMerger(2);
             merger.connect(audioCtx.destination);
-            console.log('length: ' + songLength);
+//            console.log('length: ' + songLength);
             gainL = audioCtx.createGain();
             gainR = audioCtx.createGain();
 
@@ -149,10 +152,7 @@
             gainL.gain.value = 1;
             gainR.gain.value = 1;
 
-//            source.loop = true;
 
-//            loopstartControl.setAttribute("max", Math.floor(songLength));
-//            loopendControl.setAttribute("max", Math.floor(songLength));
           },
           (e) => {
             `Error with decoding audio data ${e.error}`;
@@ -168,16 +168,16 @@
     play.onclick = () => {
       getData();
       startTime=0;
+      playbackPosOff=0;
+      playing=true;
       source.start(startTime);
       startTime=audioCtx.currentTime;
-      console.log('Saved startTime: ' + startTime);
+//      console.log('Saved startTime: ' + startTime);
       paused=false;
       play.setAttribute("disabled", "disabled");
       playbackControl.removeAttribute("disabled");
-//      loopstartControl.removeAttribute("disabled");
-//      loopendControl.removeAttribute("disabled");
+      pos_update_timer();
     };
-
 
 
     pause.onclick = () => {
@@ -186,22 +186,23 @@
       {
       paused=false;
       pause.textContent="Pause";
+//      console.log('ct on resume: ' + audioCtx.currentTime);
       audioCtx.resume();
       }
       else
       {
       paused=true;
       pause.textContent="Resume";
+//      console.log('ct on pause: ' + audioCtx.currentTime);
       audioCtx.suspend();
       }
     };
     stop.onclick = () => {
 //      console.log('currentTime: ' + audioCtx.currentTime);
       source.stop(0);
+      playing=false;
       play.removeAttribute("disabled");
       playbackControl.setAttribute("disabled", "disabled");
-//      loopstartControl.setAttribute("disabled", "disabled");
-//      loopendControl.setAttribute("disabled", "disabled");
     };
 
     ff.onclick = () => {
@@ -210,11 +211,11 @@
       source.disconnect();
       source = audioCtx.createBufferSource();
       source.buffer = mybuffer;
-      source.connect(audioCtx.destination);
-      console.log('ct:' + currentTime + ' startTime: ' + startTime + ' offset: ' + (currentTime-startTime+15));
-      source.start(currentTime, currentTime - startTime + 15);
-//      source.start(currentTime, 15);
-      startTime-=15;
+      source.connect(splitter);
+      merger.connect(audioCtx.destination);
+      playbackPosOff +=15;
+//      console.log('ct:' + currentTime + ' playbackPosOff: ' + playbackPosOff);
+      source.start(0,currentTime + playbackPosOff);
     };
 
     rew.onclick = () => {
@@ -223,10 +224,24 @@
       source.disconnect();
       source = audioCtx.createBufferSource();
       source.buffer = mybuffer;
-      source.connect(audioCtx.destination);
-      console.log('ct:' + currentTime + ' startTime: ' + startTime);
-      source.start(currentTime, currentTime - startTime + 15);
-      startTime+=15;
+      source.connect(splitter);
+      merger.connect(audioCtx.destination);
+      playbackPosOff -=15;
+//      console.log('ct:' + currentTime + ' playbackPosOff: ' + playbackPosOff);
+      source.start(0,currentTime + playbackPosOff);
+    };
+
+    playback.oninput = () => {
+      const currentTime=audioCtx.currentTime;
+      source.stop();
+      source.disconnect();
+      source = audioCtx.createBufferSource();
+      source.buffer = mybuffer;
+      source.connect(splitter);
+      merger.connect(audioCtx.destination);
+//      console.log('playback pos: ' + playback.value + ' currentTime: ' + audioCtx.currentTime);
+      playbackPosOff = playback.value-currentTime;
+      source.start(0,playback.value);
     };
 
     playbackControl.oninput = () => {
@@ -240,16 +255,5 @@
     volumeControlo.oninput = () => {
                   gainR.gain.value=volumeControlo.value;
    }
-/*
-    loopstartControl.oninput = () => {
-      source.loopStart = loopstartControl.value;
-      loopstartValue.textContent = loopstartControl.value;
-    };
-
-    loopendControl.oninput = () => {
-      source.loopEnd = loopendControl.value;
-      loopendValue.textContent = loopendControl.value;
-    };
-*/
   </script>
 </html>
